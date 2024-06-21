@@ -1,0 +1,254 @@
+---
+title: "Product Sales Data Analysis"
+author: "Shakir Ullah Shakir"
+date: "`r Sys.Date()`"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## About Dataset:
+
+REC corp LTD. is small-scaled business venture established in India. They have been selling FOUR PRODUCTS for OVER TEN YEARS .
+The products are P1, P2, P3 and P4.
+They have collected data from their retail centers and organized it into a small csv file , which has been given to you.
+
+## The excel file contains about 8 numerical parameters :
+
+Q1- Total unit sales of product 1
+
+Q2- Total unit sales of product 2
+
+Q3- Total unit sales of product 3
+
+Q4- Total unit sales of product 4
+
+S1- Total revenue from product 1
+
+S2- Total revenue from product 2
+
+S3- Total revenue from product 3
+
+S4- Total revenue from product 4
+
+Example :
+On 13-06-2010 , product 1 had been brought by 5422 people and INR 17187.74 had been generated in revenue from product 1.
+
+Now , REC corp needs you to solve the following questions :
+
+1) Is there any trend in the sales of all four products during certain months?
+2) Out of all four products , which product has seen the highest sales in all the given years?
+3) The company has all it's retail centers closed on the 31st of December every year. Mr: Hariharan , the CEO , would love to get an estimate on no: of units of each product that could be sold on 31st of Dec , every year , if all their retail centers were kept open.
+4) The CEO is considering an idea to drop the production of any one of the products. He wants you to analyze this data and suggest whether his idea would result in a massive setback for the company.
+5) The CEO would also like to predict the sales and revenues for the year 2024. He wants you to give a yearly estimate with the best possible accuracy.
+Can you help REC corp with your analytical and data science skills ?
+NOTE: This is a hypothetical dataset generated using python for educational purposes. It bears no resemblance to any real firm. Any similarity is a matter of coincidence.
+
+
+## Install and load necessary packages
+
+Packages Installation and Loading: 
+
+The necessary R packages (dplyr, ggplot2, tidyr, reshape2, and readr) are installed and loaded. These packages provide tools for data manipulation, visualization, and reading data.
+
+```{r}
+required_packages <- c("dplyr", "ggplot2", "tidyr", "reshape2", "readr")
+
+install_if_missing <- function(pkg) {
+  if (!require(pkg, character.only = TRUE)) {
+    install.packages(pkg, dependencies = TRUE)
+    library(pkg, character.only = TRUE)
+  }
+}
+
+# Install and load packages
+sapply(required_packages, install_if_missing)
+```
+## Load necessary libraries explicitly.
+```{r}
+
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(reshape2)
+library(readr)
+```
+
+```{r}
+# Import the data
+data <- read_csv("C:/Users/Shakir Ullah Shakir/Downloads/Product Sales Data.csv")
+```
+```{r}
+#  Drop the first column
+data <- data %>% dplyr::select(-1)
+```
+ 
+```{r}
+# Display the structure of the data
+str(data)
+```
+ 
+```{r}
+# Check for missing values
+colSums(is.na(data))
+```
+
+## Data Import and Initial Processing: 
+
+The data is imported from a CSV file and the first column is dropped. The structure of the data is checked, showing that there are 4600 rows and 9 columns after dropping the first column. There are no missing values in the dataset.
+
+```{r}
+#  Extract 'Day', 'Month', and 'Year' from the 'Date' column
+data <- data %>%
+  mutate(Day = sapply(strsplit(Date, "-"), `[`, 1),
+         Month = sapply(strsplit(Date, "-"), `[`, 2),
+         Year = sapply(strsplit(Date, "-"), `[`, 3))
+```
+
+## Interpretation
+
+Date Extraction: 
+
+The 'Date' column is split into 'Day', 'Month', and 'Year' components to facilitate time-based analysis.
+
+Filtering Data: 
+
+Data for the years 2010 and 2023 is excluded from the analysis, focusing only on the years in between.
+```{r}
+# Filter out data for years 2010 and 2023
+data_reduced <- data %>% filter(Year != '2010' & Year != '2023')
+```
+
+```{r}
+#  Function to plot bar charts
+plot_bar_chart <- function(df, columns, stri, str1, val) {
+  if (val == 'sum') {
+    sales_by_year <- df %>% group_by(Year) %>% summarise(across(all_of(columns), sum))
+  } else if (val == 'mean') {
+    sales_by_year <- df %>% group_by(Year) %>% summarise(across(all_of(columns), mean))
+  }
+ 
+  sales_by_year_melted <- melt(sales_by_year, id.vars = 'Year', variable.name = 'Product', value.name = 'Sales')
+ 
+  ggplot(sales_by_year_melted, aes(x = Year, y = Sales, fill = Product)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    labs(x = "Year", y = stri, title = paste(stri, "by", str1)) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+}
+```
+
+```{r}
+#  Use the plot_bar_chart function for unit sales
+plot_bar_chart(data_reduced, c('Q-P1', 'Q-P2', 'Q-P3', 'Q-P4'), 'Total Unit Sales', 'Year', 'sum')
+```
+```{r}
+plot_bar_chart(data_reduced, c('Q-P1', 'Q-P2', 'Q-P3', 'Q-P4'), 'Mean Unit Sales', 'Year', 'mean')
+```
+
+## Interpretation
+
+Total Unit Sales: 
+
+The bar chart showing the total unit sales of products (Q-P1, Q-P2, Q-P3, Q-P4) by year highlights the overall sales volume for each product annually.
+
+Mean Unit Sales: 
+
+The bar chart for mean unit sales shows the average number of units sold per year for each product. This can indicate trends in sales performance relative to the number of days in the data.
+```{r}
+# Use the plot_bar_chart function for revenue
+plot_bar_chart(data_reduced, c('S-P1', 'S-P2', 'S-P3', 'S-P4'), 'Total Revenue', 'Year', 'sum')
+```
+```{r}
+plot_bar_chart(data_reduced, c('S-P1', 'S-P2', 'S-P3', 'S-P4'), 'Mean Revenue', 'Year', 'mean')
+```
+
+## Interpretation
+
+Total Revenue: 
+
+The bar chart for total revenue of products (S-P1, S-P2, S-P3, S-P4) by year shows the total income generated by each product annually.
+
+Mean Revenue: 
+
+The bar chart for mean revenue illustrates the average revenue per year for each product. This helps in understanding the revenue trend on a per-day basis.
+```{r}
+# Function to plot sales trend by month
+month_plot <- function() {
+  data_reduced %>%
+    group_by(Month) %>%
+    summarise(across(starts_with('Q-P'), sum)) %>%
+    gather(key = "Product", value = "Sales", -Month) %>%
+    ggplot(aes(x = as.integer(Month), y = Sales, color = Product)) +
+    geom_line() +
+    scale_x_continuous(breaks = 1:12) +
+    labs(x = "Month", y = "Total unit sales", title = "Trend in sales of all four products by month") +
+    theme_minimal()
+}
+
+month_plot()
+```
+
+```{r}
+# Replace all entries of '9' in the Month column with '09'
+data_reduced$Month <- ifelse(data_reduced$Month == '9', '09', data_reduced$Month)
+
+month_plot()
+```
+ 
+## Interpretation
+
+Sales Trend by Month: 
+
+The line plot of total unit sales by month for each product shows the monthly sales trends. This can reveal seasonal patterns or periods of high and low sales.
+Correction for September: 
+
+Changing '9' to '09' ensures that the months are consistently represented, which is crucial for accurate plotting and analysis.
+```{r}
+# Function to get data for months with 31st day
+month_31_data <- function(df, months) {
+  df %>% filter(Month %in% months & Day == '31')
+}
+```
+```{r}
+months_31 <- month_31_data(data_reduced, c('01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'))
+``` 
+
+```{r}
+# Use the plot_bar_chart function for average units and revenue on 31st day of each month
+plot_bar_chart(months_31, c('Q-P1', 'Q-P2', 'Q-P3', 'Q-P4'), 'Average Units', 'each Month, for 31st', 'mean')
+```
+```{r}
+plot_bar_chart(months_31, c('S-P1', 'S-P2', 'S-P3', 'S-P4'), 'Average Revenue', 'each Month, for 31st', 'mean')
+```
+ 
+```{r}
+# Function to calculate average sales or revenue on 31st day
+avg_on_31st <- function(df, product) {
+  df %>% filter(Day == '31') %>% summarise(across(all_of(product), mean, na.rm = TRUE)) %>% round(2)
+}
+```
+
+```{r}
+#  Average for Unit Sales
+avg_on_31st(data_reduced, c('Q-P1', 'Q-P2', 'Q-P3', 'Q-P4'))
+```
+ 
+```{r}
+# Average for Revenue
+avg_on_31st(data_reduced, c('S-P1', 'S-P2', 'S-P3', 'S-P4'))
+```
+
+## Interpretation
+
+Average Unit Sales on the 31st: 
+
+This summary shows the average unit sales for each product on the 31st of the month. The provided results indicate specific average values for each product.
+
+Average Revenue on the 31st: 
+
+Similarly, this summary shows the average revenue for each product on the 31st of the month. The values indicate the typical revenue generated on the last day of the month.
+
