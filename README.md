@@ -6,12 +6,10 @@ This project involves the analysis of product sales data. The analysis is perfor
 
 Shakir Ullah Shakir
 
-## Date
-
-`r Sys.Date()`
 
 ## Project Structure
 
+- `Product-Sales-Data-Analysis.R`: The R file containing the code and results.
 - `Product-Sales-Data-Analysis.Rmd`: The R Markdown file containing the code and analysis.
 - `Product Sales Data.csv`: The dataset used for the analysis.
 
